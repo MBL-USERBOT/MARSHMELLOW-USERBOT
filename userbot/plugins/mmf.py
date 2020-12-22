@@ -1,25 +1,30 @@
 
 
-# Ported here with mellow_cmd to DC By @hellboi_atul
-# Kangers keep credits else gey
-# Thanks to userge && Priyam Kalra
+"""Reply to an image/sticker with .mmf` 'text on top' ; 'text on bottom
 
-# Parts of the code below is taken from other sources, the links to the sources is commented above the taken code
+base by: @r4v4n4
 
+created by: @A_Dark_Princ3
 
+"""
+# credit to MR.Stark sir gor making this plugin
+import asyncio
 
-from PIL import Image, ImageFont, ImageDraw
+from telethon.errors.rpcerrorlist import YouBlockedUserError
 
-import textwrap, os
-from userbot.utils import mellow_cmd
+from telethon.tl.types import MessageMediaPhoto
 
+from uniborg.util import mellow_cmd
 
+from userbot import CMD_HELP
 
+thumb_image_path = Config.TMP_DOWNLOAD_DIRECTORY + "/thumb_image.jpg"
 
+@mellow.on(mellow_cmd("mmf ?(.*)"))
 
-@borg.on(mellow_cmd(pattern=r"mmf ?(.*)"))
+async def _(event):
 
-async def handler(event):
+    hmm = event.chat_id
 
     if event.fwd_from:
 
@@ -27,7 +32,7 @@ async def handler(event):
 
     if not event.reply_to_msg_id:
 
-        await event.reply("Usage:- `memify upper text ; lower text`")
+        await event.edit("`Syntax: reply to an image with .mmf And Text `")
 
         return
 
@@ -35,152 +40,93 @@ async def handler(event):
 
     if not reply_message.media:
 
-        await event.reply("`Reply to a image/sticker.`")
+        await event.edit("```reply to a image/sticker/gif```")
 
         return
 
-    file = await borg.download_media(reply_message, Var.TEMP_DOWNLOAD_DIRECTORY)
+    reply_message.sender
 
-    a = await event.reply("```Memifying this image..```")
+    if reply_message.sender.bot:
 
-    text = str(event.pattern_match.group(1)).strip()
+        await event.edit("```Reply to actual users message.```")
 
-    if len(text) < 1:
-
-        return await a.edit("Usage:- `memify upper text ; lower text`")
-
-    meme = await drawText(file, text)
-
-    await event.client.send_file(event.chat_id, file=meme, force_document=False)
-
-    os.remove(meme)
-
-    await event.delete()
-
-    await a.delete()
-
-
-
-# Taken from https://github.com/UsergeTeam/Userge-Plugins/blob/master/plugins/memify.py#L64
-
-# Maybe edited to suit the needs of this module
-
-
-
-
-
-async def drawText(image_path, text):
-
-    img = Image.open(image_path)
-
-    os.remove(image_path)
-
-    shadowcolor = "black"
-
-    i_width, i_height = img.size
-
-    fnt = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-
-    m_font = ImageFont.truetype(fnt, int((70 / 640) * i_width))
-
-    if ";" in text:
-
-        upper_text, lower_text = text.split(";")
+        return
 
     else:
 
-        upper_text = text
+        await event.edit(
 
-        lower_text = ''
+            "```Transfiguration Time! Mwahaha memifying this image! (」ﾟﾛﾟ)｣ ```"
 
-    draw = ImageDraw.Draw(img)
+        )
 
-    current_h, pad = 10, 5
+    await borg.download_file(reply_message.media)
 
-    if upper_text:
+    async with borg.conversation("@TgMemeRobot") as conv:
 
-        for u_text in textwrap.wrap(upper_text, width=15):
+        try:
 
-            u_width, u_height = draw.textsize(u_text, font=m_font)
+            kekbruh = event.pattern_match.group(1)
 
-            draw.text(xy=(((i_width - u_width) / 2) - 2, int((current_h / 640)*i_width)),
+            await conv.send_message("/start")
 
-                      text=u_text, font=m_font, fill=(0, 0, 0))
+            await asyncio.sleep(1)
 
-            draw.text(xy=(((i_width - u_width) / 2) + 2, int((current_h / 640)*i_width)),
+            await conv.send_message("/create")
 
-                      text=u_text, font=m_font, fill=(0, 0, 0))
+            await asyncio.sleep(1)
 
-            draw.text(xy=((i_width - u_width) / 2, int(((current_h / 640)*i_width)) - 2),
+            await conv.send_file(reply_message.media)
 
-                      text=u_text, font=m_font, fill=(0, 0, 0))
+            await asyncio.sleep(3)
 
-            draw.text(xy=(((i_width - u_width) / 2), int(((current_h / 640)*i_width)) + 2),
+            await conv.send_message(kekbruh)
 
-                      text=u_text, font=m_font, fill=(0, 0, 0))
+            response = await conv.get_response()
 
+            await conv.mark_read(message=response)
 
+            den = response.media
 
-            draw.text(xy=((i_width - u_width) / 2, int((current_h / 640)*i_width)),
+            await borg.send_file(hmm, den)
 
-                      text=u_text, font=m_font, fill=(255, 255, 255))
+        except YouBlockedUserError:
 
-            current_h += u_height + pad
+            await event.reply("```Please unblock @TgMemeRobot and try again```")
 
-    if lower_text:
+            return
 
-        for l_text in textwrap.wrap(lower_text, width=15):
+        if response.text.startswith("Forward"):
 
-            u_width, u_height = draw.textsize(l_text, font=m_font)
+            await event.edit(
 
-            draw.text(
+                "```can you kindly disable your forward privacy settings for good nibba?```"
 
-                xy=(((i_width - u_width) / 2) - 2, i_height -
+            )
 
-                    u_height - int((20 / 640)*i_width)),
+        if "This is" in response.text:
 
-                text=l_text, font=m_font, fill=(0, 0, 0))
+            await event.edit(
 
-            draw.text(
+                "```🤨 NANI?! This is not an image! This will take sum tym to convert to image owo 🧐```"
 
-                xy=(((i_width - u_width) / 2) + 2, i_height -
+            )
 
-                    u_height - int((20 / 640)*i_width)),
+def is_message_image(message):
 
-                text=l_text, font=m_font, fill=(0, 0, 0))
+    if message.media:
 
-            draw.text(
+        if isinstance(message.media, MessageMediaPhoto):
 
-                xy=((i_width - u_width) / 2, (i_height -
+            return True
 
-                                              u_height - int((20 / 640)*i_width)) - 2),
+        if message.media.document:
 
-                text=l_text, font=m_font, fill=(0, 0, 0))
+            if message.media.document.mime_type.split("/")[0] == "image":
 
-            draw.text(
+                return True
 
-                xy=((i_width - u_width) / 2, (i_height -
+        return False
 
-                                              u_height - int((20 / 640)*i_width)) + 2),
+    return False
 
-                text=l_text, font=m_font, fill=(0, 0, 0))
-
-
-
-            draw.text(
-
-                xy=((i_width - u_width) / 2, i_height -
-
-                    u_height - int((20 / 640)*i_width)),
-
-                text=l_text, font=m_font, fill=(255, 255, 255))
-
-            current_h += u_height + pad
-
-    image_name = "memify.webp"
-
-    webp_file = os.path.join(Var.TEMP_DOWNLOAD_DIRECTORY, image_name)
-
-    img.save(webp_file, "webp")
-
-    return webp_file
